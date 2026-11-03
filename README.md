@@ -7,7 +7,7 @@ A professional full-stack IoT environment monitoring system powered by an **ESP3
 ## 🚀 Key Features
 * **Microcontroller & FreeRTOS Architecture:** Runs multiple concurrent preemptive tasks on the ESP32 (handling sensor readings, display updates, buzzer alarms, and network communication without blocking).
 * **Sensors & Peripherals:**
-  * **MQ-2 / MQ-135:** Analog gas sensor for air quality and pollution detection.
+  * **MQ-2:** Analog gas sensor for air quality and pollution detection.
   * **DHT11:** Precision temperature and humidity sensor.
   * **SSD1306 OLED (0.96"):** SPI-based local display showing live metrics.
   * **Buzzer:** Hardware alert system triggered when air quality exceeds safety thresholds.
@@ -29,6 +29,14 @@ A professional full-stack IoT environment monitoring system powered by an **ESP3
 * `firmware/` - Arduino C/C++ source code for the ESP32, including FreeRTOS task definitions and hardware drivers.
 * `backend/` - Node.js server script (`server.js`) and dependencies (`package.json`).
 * `frontend/` - Web dashboard interface (`index.html`) with embedded Chart.js logic and WebSocket client handling.
+
+---
+
+## 📹 Video Demonstration
+
+| Operational View | Description | Video Link |
+| :--- | :--- | :--- |
+| **System Demo** | Live hardware operation, sensor response, OLED display, and web dashboard telemetry | [▶️ Watch Video Demo](https://youtube.com/shorts/WvLMer2l8bI) |
 
 ---
 
