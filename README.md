@@ -35,7 +35,7 @@ A professional full-stack IoT environment monitoring system powered by an **ESP3
 
 ## 🖼️ Dashboard Preview
 
-![IoT Air Quality Dashboard Preview](air.quality.board.png)
+![IoT Air Quality Dashboard Preview](Media/air.quality.board.png)
 
 ---
 
