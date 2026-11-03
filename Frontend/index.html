@@ -1,1 +1,157 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <title>IoT Air Quality & Environment Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; }
+    .status-box { text-align: center; margin-bottom: 20px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    .card { background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    h3 { margin-top: 0; color: #38bdf8; }
+    .val { font-weight: bold; color: #22c55e; }
+    .stats-box { margin-top: 15px; font-size: 13px; background: #0f172a; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .stats-box span { color: #cbd5e1; }
+    .btn-reset { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+    .btn-reset:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Air Quality Monitor</h1>
+    <div class="status-box">
+      Status: <span id="status" style="color:#ef4444">Disconnected</span>
+    </div>
 
+    <div class="grid">
+      <!-- Gas Card -->
+      <div class="card">
+        <h3>Air Quality</h3>
+        <p>Value: <span id="val-gas" class="val">0</span> ADC</p>
+        <canvas id="gasChart"></canvas>
+        <div class="stats-box">
+          <div>Min: <span id="min-gas">0</span> | Max: <span id="max-gas">0</span> | Average: <span id="avg-gas">0</span></div>
+          <button class="btn-reset" onclick="resetStats('gas')">Reset</button>
+        </div>
+      </div>
+
+      <!-- Temperature Card -->
+      <div class="card">
+        <h3>Temperature</h3>
+        <p>Value: <span id="val-temp" class="val">0</span> °C</p>
+        <canvas id="tempChart"></canvas>
+        <div class="stats-box">
+          <div>Min: <span id="min-temp">0</span> | Max: <span id="max-temp">0</span> | Average: <span id="avg-temp">0</span></div>
+          <button class="btn-reset" onclick="resetStats('temp')">Reset</button>
+        </div>
+      </div>
+
+      <!-- Humidity Card -->
+      <div class="card">
+        <h3>Humidity</h3>
+        <p>Value: <span id="val-hum" class="val">0</span> %</p>
+        <canvas id="humChart"></canvas>
+        <div class="stats-box">
+          <div>Min: <span id="min-hum">0</span> | Max: <span id="max-hum">0</span> | Average: <span id="avg-hum">0</span></div>
+          <button class="btn-reset" onclick="resetStats('hum')">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    
+    const statsData = {
+      gas: { min: null, max: null, sum: 0, count: 0 },
+      temp: { min: null, max: null, sum: 0, count: 0 },
+      hum: { min: null, max: null, sum: 0, count: 0 }
+    };
+
+    function resetStats(type) {
+      statsData[type] = { min: null, max: null, sum: 0, count: 0 };
+      document.getElementById(`min-${type}`).innerText = '0';
+      document.getElementById(`max-${type}`).innerText = '0';
+      document.getElementById(`avg-${type}`).innerText = '0';
+    }
+
+    function updateStats(type, val) {
+      let s = statsData[type];
+      if (s.min === null || val < s.min) s.min = val;
+      if (s.max === null || val > s.max) s.max = val;
+      s.sum += val;
+      s.count++;
+
+      let avg = (s.sum / s.count).toFixed(1);
+
+      document.getElementById(`min-${type}`).innerText = s.min;
+      document.getElementById(`max-${type}`).innerText = s.max;
+      document.getElementById(`avg-${type}`).innerText = avg;
+    }
+
+    
+    const ctxGas = document.getElementById('gasChart').getContext('2d');
+    const gasChart = new Chart(ctxGas, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Air Quality', data: [], borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] },
+      options: { scales: { y: { beginAtZero: true, max: 4095 } }, animation: false }
+    });
+
+    const ctxTemp = document.getElementById('tempChart').getContext('2d');
+    const tempChart = new Chart(ctxTemp, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Temperature (°C)', data: [], borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] },
+      options: { scales: { y: { beginAtZero: true, max: 60 } }, animation: false }
+    });
+
+    const ctxHum = document.getElementById('humChart').getContext('2d');
+    const humChart = new Chart(ctxHum, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Humidity (%)', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }] },
+      options: { scales: { y: { beginAtZero: true, max: 100 } }, animation: false }
+    });
+
+    const ws = new WebSocket('ws://localhost:8080');
+
+    ws.onopen = () => {
+      document.getElementById('status').innerText = 'Connected';
+      document.getElementById('status').style.color = '#22c55e';
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const time = new Date().toLocaleTimeString();
+
+      if (data.gas !== undefined) {
+        document.getElementById('val-gas').innerText = data.gas;
+        updateChart(gasChart, time, data.gas);
+        updateStats('gas', data.gas);
+      }
+
+      if (data.temperature !== undefined) {
+        document.getElementById('val-temp').innerText = data.temperature;
+        updateChart(tempChart, time, data.temperature);
+        updateStats('temp', data.temperature);
+      }
+
+      if (data.humidity !== undefined) {
+        document.getElementById('val-hum').innerText = data.humidity;
+        updateChart(humChart, time, data.humidity);
+        updateStats('hum', data.humidity);
+      }
+    };
+
+    function updateChart(chart, time, value) {
+      if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+      chart.data.labels.push(time);
+      chart.data.datasets[0].data.push(value);
+      chart.update();
+    }
+  </script>
+</body>
+</html>
