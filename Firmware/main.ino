@@ -58,7 +58,7 @@ void setup(){
     Serial.println(F("Error!"));
     while(1);
   }
-  // Wi-Fi konekcija
+
   WiFi.begin(ssid,password);
   while(WiFi.status()!=WL_CONNECTED){
     delay(500);
@@ -66,7 +66,7 @@ void setup(){
   }
   Serial.println("\nWi-Fi povezan!");
 
-  // Inicijalizacija WebSockets-a
+
   webSocket.begin(websocket_server_host,websocket_server_port, "/");
   webSocket.setReconnectInterval(5000);
 
